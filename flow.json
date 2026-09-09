@@ -1,0 +1,344 @@
+[
+    {
+        "id": "06047bf462c9e047",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "GPIO18 button controls GPIO23 relay. 5 second countdown with Dashboard synchronization."
+    },
+    {
+        "id": "e87269ce1a06d3b8",
+        "type": "ui-switch",
+        "z": "06047bf462c9e047",
+        "name": "LED Control",
+        "label": "Relay / LED",
+        "group": "45af938b0b2d33c6",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "passthru": false,
+        "decouple": true,
+        "topic": "relay",
+        "topicType": "str",
+        "className": "",
+        "onvalue": "ON",
+        "onvalueType": "str",
+        "offvalue": "OFF",
+        "offvalueType": "str",
+        "x": 180,
+        "y": 80,
+        "wires": [
+            [
+                "65474c54c0f8152e"
+            ]
+        ]
+    },
+    {
+        "id": "307d8ad20934dcf0",
+        "type": "rpi-gpio in",
+        "z": "06047bf462c9e047",
+        "name": "Physical Button GPIO 18",
+        "pin": "18",
+        "intype": "up",
+        "debounce": "100",
+        "read": false,
+        "bcm": true,
+        "x": 170,
+        "y": 180,
+        "wires": [
+            [
+                "07e99793b982dd2a"
+            ]
+        ]
+    },
+    {
+        "id": "07e99793b982dd2a",
+        "type": "switch",
+        "z": "06047bf462c9e047",
+        "name": "Button Pressed?",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "0",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 420,
+        "y": 220,
+        "wires": [
+            [
+                "a87675bc406494ac"
+            ]
+        ]
+    },
+    {
+        "id": "a87675bc406494ac",
+        "type": "function",
+        "z": "06047bf462c9e047",
+        "name": "Physical Button Handler",
+        "func": "let now = Date.now();\nlet last = flow.get('last_button_press') || 0;\n\nif (now - last < 300) {\n    return null;\n}\n\nflow.set('last_button_press', now);\n\nreturn {\n    payload: 'ON',\n    topic: 'physical_button'\n};",
+        "outputs": 1,
+        "x": 600,
+        "y": 180,
+        "wires": [
+            [
+                "65474c54c0f8152e",
+                "fb5dd0f1c2b7c0b1"
+            ]
+        ]
+    },
+    {
+        "id": "fb5dd0f1c2b7c0b1",
+        "type": "function",
+        "z": "06047bf462c9e047",
+        "name": "Track Button Presses",
+        "func": "let count = Number(flow.get('total_presses') || 0) + 1;\nflow.set('total_presses', count);\n\nmsg.payload = count;\nmsg.topic = 'Button Presses';\nreturn msg;",
+        "outputs": 1,
+        "x": 820,
+        "y": 300,
+        "wires": [
+            [
+                "d452d33b9facb6da"
+            ]
+        ]
+    },
+    {
+        "id": "65474c54c0f8152e",
+        "type": "function",
+        "z": "06047bf462c9e047",
+        "name": "Relay Controller + Countdown",
+        "func": "const command = String(msg.payload).toUpperCase();\nlet oldTimer = flow.get('relay_timer');\n\nif (command === 'ON') {\n\n    if (oldTimer) {\n        clearInterval(oldTimer);\n    }\n\n    flow.set('relay_state', true);\n\n    node.send([\n        { payload: 'ON' },\n        { payload: true },\n        { payload: 'ON' },\n        { payload: 5 }\n    ]);\n\n    let remaining = 5;\n\n    let timer = setInterval(function() {\n        remaining--;\n\n        if (remaining > 0) {\n            node.send([\n                null,\n                null,\n                { payload: 'ON' },\n                { payload: remaining }\n            ]);\n        } else {\n            clearInterval(timer);\n            flow.set('relay_timer', null);\n            flow.set('relay_state', false);\n\n            node.send([\n                { payload: 'OFF' },\n                { payload: false },\n                { payload: 'OFF' },\n                { payload: 0 }\n            ]);\n        }\n    }, 1000);\n\n    flow.set('relay_timer', timer);\n    return null;\n}\n\nif (command === 'OFF') {\n\n    if (oldTimer) {\n        clearInterval(oldTimer);\n    }\n\n    flow.set('relay_timer', null);\n    flow.set('relay_state', false);\n\n    node.send([\n        { payload: 'OFF' },\n        { payload: false },\n        { payload: 'OFF' },\n        { payload: 0 }\n    ]);\n\n    return null;\n}\n\nreturn null;",
+        "outputs": 4,
+        "x": 710,
+        "y": 80,
+        "wires": [
+            [
+                "990df92c4f40400b"
+            ],
+            [
+                "e87269ce1a06d3b8"
+            ],
+            [
+                "8580dffd3b0e2ca9"
+            ],
+            [
+                "85751a0cbc8d8d87"
+            ]
+        ]
+    },
+    {
+        "id": "990df92c4f40400b",
+        "type": "function",
+        "z": "06047bf462c9e047",
+        "name": "Build pinctrl Command",
+        "func": "const command = String(msg.payload).toUpperCase();\n\nif (command === 'ON') {\n    msg.payload = 'pinctrl set 23 op dl';\n} else {\n    msg.payload = 'pinctrl set 23 ip pu';\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1020,
+        "y": 40,
+        "wires": [
+            [
+                "333913ce84707044"
+            ]
+        ]
+    },
+    {
+        "id": "333913ce84707044",
+        "type": "exec",
+        "z": "06047bf462c9e047",
+        "command": "",
+        "addpay": true,
+        "append": "",
+        "useSpawn": false,
+        "timer": "",
+        "winHide": false,
+        "name": "GPIO 23 Relay",
+        "x": 1150,
+        "y": 140,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "8580dffd3b0e2ca9",
+        "type": "ui-text",
+        "z": "06047bf462c9e047",
+        "group": "45af938b0b2d33c6",
+        "order": 2,
+        "width": "6",
+        "height": "1",
+        "name": "Relay Status",
+        "label": "Relay Status",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "Helvetica, sans-serif",
+        "fontSize": "20",
+        "color": "#005bbb",
+        "className": "",
+        "x": 1080,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "85751a0cbc8d8d87",
+        "type": "ui-text",
+        "z": "06047bf462c9e047",
+        "group": "ebc7ef7703526e1f",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "name": "Countdown",
+        "label": "Auto-OFF Countdown",
+        "format": "{{msg.payload}} seconds",
+        "layout": "row-spread",
+        "style": true,
+        "font": "Helvetica, sans-serif",
+        "fontSize": "20",
+        "color": "#388e3c",
+        "className": "",
+        "x": 1080,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "d452d33b9facb6da",
+        "type": "ui-text",
+        "z": "06047bf462c9e047",
+        "group": "ebc7ef7703526e1f",
+        "order": 2,
+        "width": "6",
+        "height": "1",
+        "name": "Press Count",
+        "label": "Total Button Presses",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "style": true,
+        "font": "Helvetica, sans-serif",
+        "fontSize": "20",
+        "color": "#005bbb",
+        "className": "",
+        "x": 1080,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "0ba022511bc78cbb",
+        "type": "inject",
+        "z": "06047bf462c9e047",
+        "name": "Startup - Show Count",
+        "props": [
+            {
+                "p": "payload",
+                "v": "0",
+                "vt": "num"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "Button Presses",
+        "x": 190,
+        "y": 360,
+        "wires": [
+            [
+                "d452d33b9facb6da"
+            ]
+        ]
+    },
+    {
+        "id": "45af938b0b2d33c6",
+        "type": "ui-group",
+        "name": "Control Panel",
+        "page": "35b414025ebff4f3",
+        "width": "6",
+        "height": "1",
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "ebc7ef7703526e1f",
+        "type": "ui-group",
+        "name": "Live Metrics & Analytics",
+        "page": "35b414025ebff4f3",
+        "width": "6",
+        "height": "1",
+        "order": 2,
+        "showTitle": true,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "35b414025ebff4f3",
+        "type": "ui-page",
+        "name": "Home",
+        "ui": "1b01472e02ef3dc3",
+        "path": "/home",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "a323d1a915fe5fd1",
+        "order": 1,
+        "className": "",
+        "visible": true,
+        "disabled": false
+    },
+    {
+        "id": "1b01472e02ef3dc3",
+        "type": "ui-base",
+        "name": "Dashboard 2.0",
+        "path": "/dashboard",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": true,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default"
+    },
+    {
+        "id": "a323d1a915fe5fd1",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#18191b",
+            "primary": "#0d74ce",
+            "bgPage": "#111113",
+            "groupBg": "#212225",
+            "groupOutline": "#363a3f"
+        },
+        "sizes": {
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px",
+            "density": "default"
+        }
+    },
+    {
+        "id": "ebb4b63b0cbaeea0",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.31.0",
+            "node-red-node-pi-gpio": "2.0.7"
+        }
+    }
+]
