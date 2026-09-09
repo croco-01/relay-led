@@ -1,5 +1,5 @@
 ## 🛠️ Raspberry Pi Node-RED GPIO Relay & Button Controller
-This repository contains a production-ready Node-RED flow that bridges a physical hardware interface with an interactive Node-RED Dashboard 2.0 interface. The system uses a physical button on GPIO 18 to trigger a 5-second countdown timer that activates a relay on GPIO 23, complete with hardware debouncing, analytics tracking, and automated fallback logic.
+
 ------------------------------
 ## 📌 Core Features
 
