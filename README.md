@@ -17,8 +17,8 @@ Connect the components to the Raspberry Pi 40-pin GPIO header using the physical
 | Relay VCC | Physical Pin 2 | Top row, 2nd pin from left | 5V Power for relay coil |
 | Relay GND | Physical Pin 6 | Top row, 3rd pin from left | Circuit Ground |
 | Relay IN | Physical Pin 16 (GPIO 23) | Bottom row, 8th pin from left | Active-LOW control signal |
-| Relay COM | Physical Pin 1 | Top row, 1st pin on left | 3.3V Power source for LED |
 | Relay NO | Breadboard Row 10 | Breadboard | Switched power line |
+| Relay COM | Physical Pin 1 | Top row, 1st pin on left | 3.3V Power source for LED |
 | Relay NC | Empty | None | Leave unconnected |
 | Button Leg 1 | Physical Pin 12 (GPIO 18) | Bottom row, 6th pin from left | Input signal with internal pull-up |
 | Button Leg 2 | Physical Pin 20 (GND) | Bottom row, 10th pin from left | Ground contact when pressed |
