@@ -12,17 +12,21 @@
 ## 🎛️ Hardware Configuration & Wiring
 Connect the components to the Raspberry Pi 40-pin GPIO header using the physical pin locations listed below.
 
+
 | Device Component | Connection Target | Raspberry Pi Header Location | Function |
-|---|---|---|---|
-| Relay VCC | Physical Pin 2 | Top row, 2nd pin from left | 5V Power for relay coil |
-| Relay GND | Physical Pin 6 | Top row, 3rd pin from left | Circuit Ground |
-| Relay IN | Physical Pin 16 (GPIO 23) | Bottom row, 8th pin from left | Active-LOW control signal |
-| Relay NO | Breadboard Row 10 | Breadboard | Switched power line |
-| Relay COM | Physical Pin 1 | Top row, 1st pin on left | 3.3V Power source for LED |
-| Relay NC | Empty | None | Leave unconnected |
-| Button Leg 1 | Physical Pin 12 (GPIO 18) | Bottom row, 6th pin from left | Input signal with internal pull-up |
-| Button Leg 2 | Physical Pin 20 (GND) | Bottom row, 10th pin from left | Ground contact when pressed |
-| LED Cathode | Physical Pin 14 (GND) | Bottom row, 7th pin from left | Ground return line |
+| :--- | :--- | :--- | :--- |
+| **Main Ground Wire** | Breadboard Blue Rail (-) | Top row, 3rd pin from left (Pin 6) | Supplies Ground (0V) to the breadboard rail |
+| **Main 5V Power Wire** | Breadboard Red Rail (+) | Top row, 1st pin from left (Pin 2) | Supplies 5V Power to the breadboard rail |
+| **Relay VCC** | Breadboard Red Rail (+) | None (Powered via Red Rail) | 5V Power for relay coil |
+| **Relay GND** | Breadboard Blue Rail (-) | None (GND via Blue Rail) | Circuit Ground |
+| **Relay IN** | Physical Pin 16 (GPIO 23) | Top row, 8th pin from left | Active-LOW control signal |
+| **Relay NO** | Jumper Wire to Leg 1 of Resistor | None (Direct connection) | Switched power line to LED load |
+| **Relay COM** | Breadboard Red Rail (+) | None (Powered via Red Rail) | Safe 5V power source for the switched load |
+| **Relay NC** | Empty | None | Leave unconnected |
+| **LED Anode (+)** | Connects to Leg 2 of Resistor | None (Direct connection) | Positive leg of LED |
+| **LED Cathode (-)** | Breadboard Blue Rail (-) | None (GND via Blue Rail) | Ground return line |
+| **Button Leg 1** | Physical Pin 12 (GPIO 18) | Top row, 6th pin from left | Input signal with internal pull-up |
+| **Button Leg 2** | Breadboard Blue Rail (-) | None (GND via Blue Rail) | Ground contact when pressed |
 
 ------------------------------
 ## 🚀 Dependencies
